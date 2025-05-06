@@ -12,7 +12,7 @@ def extract_text_from_pdf(pdf_path):
         print(f"Page {page_num + 1} length: {len(page_text)} characters")
         text += page_text
 
-    print("✅ Extraction complete.")
+    print("Extraction complete.")
     return text
 
 pdf_path = "C:/Users/Administrator/Desktop/CV_Parsing_AgenticAI/sample_data/Deedy_Resume_Reversed__1_.pdf"
