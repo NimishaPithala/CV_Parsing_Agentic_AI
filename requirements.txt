@@ -1,5 +1,3 @@
 PyMuPDF
 smolagents 
-pydantic
-python-dotenv
 smoldev
