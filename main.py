@@ -9,12 +9,10 @@ from extractor_agent import CoordinatorAgent
 def main(pdf_path: str, output_path: str):
     print("[INFO] Starting CV processing")
     coordinator = CoordinatorAgent()
-    result_json = coordinator.process_cv(pdf_path)  # Process the CV and get the extracted data
-
-    # Debugging print: Check if result_json contains valid data
+    result_json = coordinator.process_cv(pdf_path) 
     print(f"Final result to be saved: {result_json}")
     
-    # Save the results to a JSON file
+    
     with open(output_path, 'w') as f:
         json.dump(result_json, f, indent=2)
     
