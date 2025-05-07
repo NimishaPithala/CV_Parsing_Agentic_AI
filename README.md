@@ -10,7 +10,7 @@ Taking a multi agent architecture would help me concentrate more on extracting s
 but there were few crucial points that I thoguht of when this is used as a real world example,
 
 PDF extracts text that can be different sections other than the basic section names. (Like Internships, Participations etc)
-So I wanted to create an automated agent that creates agents for the extracted sections keeping basic agents like cordination agent and sentiment agent (Extracting agent can also be created)
+So I wanted to create an automated agent that creates agents for the extracted sections keeping basic agents like cordination agent (Extracting agent can also be created)
 
 Problem to be exlpored(which I did not include in the scope of this problem) : If there are words similar to the section names, then need to be carefull with the extraction of sections (while using regex)
 
