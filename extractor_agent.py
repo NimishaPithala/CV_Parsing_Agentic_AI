@@ -1,101 +1,83 @@
-from smolagents import CodeAgent, InferenceClientModel
-from utils.pdf_parser import extract_text_from_pdf
 import re
+from smolagents import CodeAgent, InferenceClientModel
+from utils.pdf_parser import extract_text_from_pdf 
 
 class AgentCreator:
     def __init__(self):
-        self.model = InferenceClientModel()  
+        self.model = InferenceClientModel() 
 
-    
     def create_agent_for_section(self, section_name, section_text):
-        agent_name = f"{section_name.lower().replace(' ', '_')}_extractor"
-        instructions = f"Extract details for the section: {section_name}."
-        tools = []  
+        prompt_templates = {
+            "system_prompt": f"You are a resume section extraction agent. Extract structured data from the section: '{section_name}'. Focus on key points and make it concise.",
+            "planning": "Plan how you'll parse the section text to extract useful information.",
+            "planning.initial_plan": "I will identify the key details under this section and structure them clearly.",
+            "managed_agent": "Given the section content, begin your analysis and return a structured output.",
+            "final_answer": "Here is the extracted content from the section: {output}"
+        }
 
         agent = CodeAgent(
-            tools=tools,       
-            model=self.model,  
-            prompt_templates=None,  
-            grammar=None,          
-            instructions=instructions 
+            tools=[], #can be added later
+            model=self.model,
+            prompt_templates=prompt_templates,
+            grammar=None
         )
+
         return agent.run(section_text)
-    
-    
+
     def process_sections(self, text, detected_sections):
         results = {}
-        for section in detected_sections:
-            section_text = self.extract_section_text(text, section)
-            results[section] = self.create_agent_for_section(section, section_text)
+        for i, section in enumerate(detected_sections):
+            section_text = self.extract_section_text(text, section, detected_sections)
+            print(f"\n📌 Processing section: {section}")
+            print(f"📄 Section Text Preview: {section_text[:300]}...\n")
+            result = self.create_agent_for_section(section, section_text)
+            print(f"✅ Extracted Result for '{section}':\n{result}\n")
+            results[section] = result
         return results
-    
-    def process_sections(self, text, detected_sections):
-      results = {}
-      for section in detected_sections:
-        section_text = self.extract_section_text(text, section)
-    
-        print(f"Processing section: {section}")
-        print(f"Section Text: {section_text[:200]}") 
-        
-        result = self.create_agent_for_section(section, section_text)
-        
-    
-        print(f"Result for section '{section}': {result}")
-        
-        results[section] = result
-      return results
 
+    def extract_section_text(self, text, section_name, all_sections):
+        lines = text.split('\n')
+        section_start_index = None
+        section_end_index = None
 
-    def extract_section_text(self, text, section_name):
-        section_start = text.find(section_name)
-        section_end = text.find("\n", section_start + len(section_name))
-        return text[section_start:section_end] if section_start != -1 and section_end != -1 else ""
+        for i, line in enumerate(lines):
+            if line.strip().upper() == section_name.strip().upper():
+                section_start_index = i
+                break
+
+        if section_start_index is None:
+            return ""
+            
+        for j in range(section_start_index + 1, len(lines)):
+            if lines[j].strip().upper() in all_sections:
+                section_end_index = j
+                break
+
+        section_lines = lines[section_start_index:section_end_index] if section_end_index else lines[section_start_index:]
+        return '\n'.join(section_lines)
+
 
 def extract_section_headers(text):
     lines = text.split("\n")
-    pattern = r"^[A-Z][A-Z\s]+$"  
-
-    headers = []
-    for line in lines:
-        if re.match(pattern, line.strip()):  
-            headers.append(line.strip())
-
-"""
-def extract_section_headers(text):
-    lines = text.split("\n")
-    pattern = r"^[A-Z][A-Z\s]+$"
+    pattern = r"^[A-Z][A-Z\s]{2,}$" 
     headers = [line.strip() for line in lines if re.match(pattern, line.strip())]
-    return headers 
-"""
-    
-    possible_sections = [
-        "WORK EXPERIENCE", "EXPERIENCE", "EDUCATION", "SKILLS", "CERTIFICATIONS", "PROJECTS",
-        "LANGUAGES", "AWARDS", "PUBLICATIONS", "SUMMARY", "EXTRA CURRICULARS"
-    ]
-    return [header for header in headers if header in possible_sections]
+    return headers
 
 
 class CoordinatorAgent:
     def __init__(self):
-        
         self.agent_creator = AgentCreator()
 
     def process_cv(self, pdf_path):
-       text = extract_text_from_pdf(pdf_path)
-       print("\n🔍 Extracted text preview:\n", text[:1000])  
+        text = extract_text_from_pdf(pdf_path)
+        print("\n🔍 Extracted text preview:\n", text[:1000])  
 
-       detected_sections = extract_section_headers(text)
-       print(f"\n🧩 Detected sections: {detected_sections}")  
-       section_results = self.agent_creator.process_sections(text, detected_sections)
-    
-       sentiment = self.analyze_sentiment(text)
+        detected_sections = extract_section_headers(text)
+        print(f"\n🧩 Detected sections: {detected_sections}")
 
-       return {**section_results, "sentiment": sentiment}
-
+        section_results = self.agent_creator.process_sections(text, detected_sections)
+        sentiment = self.analyze_sentiment(text)  
+        return {**section_results, "sentiment": sentiment}
 
     def analyze_sentiment(self, text):
         return "neutral"
-
-text = "John Doe\nEXPERIENCE\nWORK EXPERIENCE\nEDUCATION\nSKILLS"
-detected_sections = extract_section_headers(text)
-print("Detected Sections:", detected_sections)
