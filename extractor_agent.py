@@ -28,10 +28,10 @@ class AgentCreator:
         results = {}
         for i, section in enumerate(detected_sections):
             section_text = self.extract_section_text(text, section, detected_sections)
-            print(f"\n📌 Processing section: {section}")
-            print(f"📄 Section Text Preview: {section_text[:300]}...\n")
+            print(f"Processing section: {section}")
+            print(f"Section Text Preview: {section_text[:300]}...\n")
             result = self.create_agent_for_section(section, section_text)
-            print(f"✅ Extracted Result for '{section}':\n{result}\n")
+            print(f"Extracted Result for '{section}':\n{result}\n")
             results[section] = result
         return results
 
@@ -70,14 +70,10 @@ class CoordinatorAgent:
 
     def process_cv(self, pdf_path):
         text = extract_text_from_pdf(pdf_path)
-        print("\n🔍 Extracted text preview:\n", text[:1000])  
+        print("Extracted text preview:\n", text[:1000])  
 
         detected_sections = extract_section_headers(text)
-        print(f"\n🧩 Detected sections: {detected_sections}")
+        print(f"Detected sections: {detected_sections}")
 
         section_results = self.agent_creator.process_sections(text, detected_sections)
-        sentiment = self.analyze_sentiment(text)  
-        return {**section_results, "sentiment": sentiment}
-
-    def analyze_sentiment(self, text):
-        return "neutral"
+        return {section_results}
