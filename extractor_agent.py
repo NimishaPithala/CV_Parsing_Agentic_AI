@@ -76,4 +76,4 @@ class CoordinatorAgent:
         print(f"Detected sections: {detected_sections}")
 
         section_results = self.agent_creator.process_sections(text, detected_sections)
-        return {section_results}
+        return section_results
